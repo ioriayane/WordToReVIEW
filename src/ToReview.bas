@@ -29,7 +29,10 @@ Public Sub ToReview()
         Set footnote_coll = New Collection
         
         'å©èoÇµ
-        Call ToReviewAddOutline(para, line)
+        Call ToReviewOutline(para, line)
+        
+        'â”èèëÇ´
+        Call ToReviewListFormat(para, line)
         
         'íióé
         Call ToReviewParagraph(para, footnote_coll, line)
@@ -150,8 +153,26 @@ Private Sub ToReviewFootNote(ByRef r As Range, ByRef footnote_coll As Collection
     in_footnote = False
 End Sub
 
+'â”èèëÇ´
+Private Sub ToReviewListFormat(ByRef para As Paragraph, ByRef line As String)
+
+    If Len(line) > 0 Then
+        Exit Sub
+    End If
+
+    Select Case para.Range.ListFormat.ListType
+    Case wdListBullet, wdListPictureBullet
+        line = line & " * "
+    
+    Case wdListListNumOnly, wdListSimpleNumbering, wdListOutlineNumbering, wdListMixedNumbering
+        line = line & " " & para.Range.ListFormat.ListValue & ". "
+    
+    Case Else
+    End Select
+End Sub
+
 'å©èoÇµ
-Private Sub ToReviewAddOutline(ByRef para As Paragraph, ByRef line As String)
+Private Sub ToReviewOutline(ByRef para As Paragraph, ByRef line As String)
     Dim i As Long
     
     If para.OutlineLevel <> wdOutlineLevelBodyText Then
