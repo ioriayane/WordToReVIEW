@@ -1,6 +1,8 @@
 Attribute VB_Name = "ToReview"
 Option Explicit
 
+Const OUTPUT_PATH = "d:\toreview.re"
+
 Dim footnote_id As Long
 Dim in_footnote As Boolean
 
@@ -14,12 +16,13 @@ Public Sub ToReview()
     Dim footnote_coll As New Collection
     Dim footnote_text As Variant
     
-    Dim fs As New FileSystemObject
-    Dim ts As TextStream
     
     Set doc = ActiveDocument
     
-    Set ts = fs.CreateTextFile("D:\Work\review.txt", True)
+    Dim fs As New FileSystemObject
+    Dim ts As TextStream
+    Set ts = fs.CreateTextFile(OUTPUT_PATH, True)
+    
     
     is_prev_empty = True
     footnote_id = 0
