@@ -83,38 +83,65 @@ Private Sub ToReviewParagraph(ByRef para As Paragraph _
                                 , ByRef footnote_coll As Collection _
                                 , ByRef line As String)
     Dim r As Range
+    
+    Dim in_bold As Boolean
     Dim in_hyperlink As Boolean
-    Dim hyperlink_text As String
     Dim hyperlink_address As String
+    Dim temp_text As String
+    
+    Dim end_pos As Long
     
     in_hyperlink = False
     For Each r In para.Range.Words
+        If r.Start < end_pos Then
+            '理由はわからないけど範囲がかぶってくるときがあるので...
+            'xml的にはrPrのないrがあるとなるみたいだけど...
+            r.Start = end_pos
+        End If
+    
         If r.Hyperlinks.Count > 0 And Not in_hyperlink Then
             'ハイパーリンクに入った
             in_hyperlink = True
             hyperlink_address = r.Hyperlinks.Item(1).Address
-            Call ToReviewRange(r, footnote_coll, hyperlink_text)
+            Call ToReviewRange(r, footnote_coll, temp_text)
             
         ElseIf r.Hyperlinks.Count > 0 And in_hyperlink Then
             'ハイパーリンク中
-            Call ToReviewRange(r, footnote_coll, hyperlink_text)
+            Call ToReviewRange(r, footnote_coll, temp_text)
             
         ElseIf r.Hyperlinks.Count = 0 And in_hyperlink Then
             'ハイパーリンクを出た
+            in_hyperlink = False
             If Len(hyperlink_address) > 0 Then
                 If hyperlink_address = hyperlink_text Then
                     line = line & "@<href>{" & hyperlink_address & "}"
                 Else
-                    line = line & "@<href>{" & hyperlink_address & "," & hyperlink_text & "}"
+                    line = line & "@<href>{" & hyperlink_address & "," & temp_text & "}"
                 End If
                 hyperlink_address = ""
+                temp_text = ""
             End If
             Call ToReviewRange(r, footnote_coll, line)
+            
+        ElseIf r.Bold And Not in_bold Then
+            in_bold = True
+            Call ToReviewRange(r, footnote_coll, temp_text)
+        ElseIf r.Bold And in_bold Then
+            Call ToReviewRange(r, footnote_coll, temp_text)
+        ElseIf Not r.Bold And in_bold Then
+            in_bold = False
+            If Len(temp_text) > 0 Then
+                line = line & "@<em>{" & temp_text & "}"
+                temp_text = ""
+            End If
+            Call ToReviewRange(r, footnote_coll, line)
+            
         Else
             Call ToReviewRange(r, footnote_coll, line)
         End If
+        
+        end_pos = r.End
     Next
-    
 End Sub
 
 '単語？
