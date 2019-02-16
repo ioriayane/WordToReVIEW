@@ -1,6 +1,6 @@
 # WordToReVIEW
 
-Word(*.docx)をRe：VIEW形式に変換します。
+Word(*.docx)をRe:VIEW形式に変換します。
 
 ## 変換できる書式
 
