@@ -12,6 +12,8 @@ Public Sub ToReview()
     Dim para As Paragraph
     Dim line As String
     Dim is_prev_empty As Boolean
+    Dim no_blankline As Boolean
+    Dim pre_no_blankline As Boolean
     
     Dim footnote_coll As New Collection
     Dim footnote_text As Variant
@@ -29,13 +31,16 @@ Public Sub ToReview()
     in_footnote = False
     For Each para In doc.Paragraphs
         line = ""
+        no_blankline = False
         Set footnote_coll = New Collection
         
         '見出し
         Call ToReviewOutline(para, line)
         
         '箇条書き
-        Call ToReviewListFormat(para, line)
+        If ToReviewListFormat(para, line) Then
+            no_blankline = True
+        End If
         
         '段落
         Call ToReviewParagraph(para, footnote_coll, line)
@@ -47,8 +52,12 @@ Public Sub ToReview()
         If is_prev_empty And Len(line) = 0 Then
             '連続の空は出力しない
         Else
+            If Not no_blankline And pre_no_blankline Then
+                ts.WriteBlankLines (1)
+            End If
+        
             ts.Write (line)
-            If Len(line) > 0 Then
+            If Len(line) > 0 And Not no_blankline Then
                 ts.WriteBlankLines (1)
             End If
             
@@ -59,6 +68,8 @@ Public Sub ToReview()
             If footnote_coll.Count >= 1 Then
                 ts.WriteBlankLines (1)
             End If
+        
+            pre_no_blankline = no_blankline
         End If
         
         
@@ -184,22 +195,25 @@ Private Sub ToReviewFootNote(ByRef r As Range, ByRef footnote_coll As Collection
 End Sub
 
 '箇条書き
-Private Sub ToReviewListFormat(ByRef para As Paragraph, ByRef line As String)
-
+Private Function ToReviewListFormat(ByRef para As Paragraph, ByRef line As String) As Boolean
+    ToReviewListFormat = False
+    
     If Len(line) > 0 Then
-        Exit Sub
+        Exit Function
     End If
 
     Select Case para.Range.ListFormat.ListType
     Case wdListBullet, wdListPictureBullet
         line = line & " * "
-    
+        ToReviewListFormat = True
+        
     Case wdListListNumOnly, wdListSimpleNumbering, wdListOutlineNumbering, wdListMixedNumbering
         line = line & " " & para.Range.ListFormat.ListValue & ". "
-    
+        ToReviewListFormat = True
+        
     Case Else
     End Select
-End Sub
+End Function
 
 '見出し
 Private Sub ToReviewOutline(ByRef para As Paragraph, ByRef line As String)
