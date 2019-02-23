@@ -113,7 +113,7 @@ Private Sub ToReviewParagraph(ByRef para As Paragraph _
             'ハイパーリンクを出た
             in_hyperlink = False
             If Len(hyperlink_address) > 0 Then
-                If hyperlink_address = hyperlink_text Then
+                If hyperlink_address = temp_text Then
                     line = line & "@<href>{" & hyperlink_address & "}"
                 Else
                     line = line & "@<href>{" & hyperlink_address & "," & temp_text & "}"
